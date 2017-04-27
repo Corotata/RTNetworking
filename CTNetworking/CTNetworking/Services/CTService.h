@@ -34,11 +34,12 @@
 //为某些Service需要拼凑额外的HTTPToken，如accessToken
 - (NSDictionary *)extraHttpHeadParmasWithMethodName:(NSString *)method;
 
+//提供URL的拼接方式
 - (NSString *)urlGeneratingRuleByMethodName:(NSString *)method;
 
 //- (void)successedOnCallingAPI:(CTURLResponse *)response;
 
-//提供拦截器集中处理Service错误问题，比如token失效要抛通知等
+//提供拦截器集中处理Service错误问题，比如token失效要抛通知等，返回值用来做拦截特殊错误时通知上层是否还要继续回调
 - (BOOL)shouldCallBackByFailedOnCallingAPI:(CTAPIBaseManager *)apiManager;
 
 @end
