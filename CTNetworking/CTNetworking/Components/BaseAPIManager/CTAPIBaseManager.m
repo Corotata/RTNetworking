@@ -213,7 +213,7 @@ __strong typeof(weakSelf) strongSelf = weakSelf;                                
     BOOL needCallBack = YES;
     
     if ([service.child respondsToSelector:@selector(shouldCallBackByFailedOnCallingAPI:)]) {
-        needCallBack = [service.child shouldCallBackByFailedOnCallingAPI:response];
+        needCallBack = [service.child shouldCallBackByFailedOnCallingAPI:self];
     }
     
     //由service决定是否结束回调

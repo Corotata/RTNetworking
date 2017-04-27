@@ -8,7 +8,7 @@
 
 #import "GDMapService.h"
 #import "CTNetworkingConfigurationManager.h"
-
+#import "CTNotificationCenterConst.h"
 @implementation GDMapService
 
 #pragma mark - CTServiceProtocal
@@ -72,38 +72,42 @@
 //    return [NSString stringWithFormat:@"%@/%@/%@", self.apiBaseUrl, self.apiVersion, methodName];
 //}
 
-
-- (BOOL)shouldCallBackByFailedOnCallingAPI:(CTURLResponse *)response {
+- (BOOL)shouldCallBackByFailedOnCallingAPI:(CTAPIBaseManager *)apiManager {
+    
+    CTURLResponse *response = apiManager.response;
     BOOL result = YES;
     if ([response.content[@"id"] isEqualToString:@"expired_access_token"]) {
         // token 失效
         [[NSNotificationCenter defaultCenter] postNotificationName:kBSUserTokenInvalidNotification
                                                             object:nil
                                                           userInfo:@{
-                                                                     kBSUserTokenNotificationUserInfoKeyRequestToContinue:[response.request mutableCopy],
+                                                                     kBSUserTokenNotificationUserInfoKeyManagerToContinue:[response.request mutableCopy],
                                                                      kBSUserTokenNotificationUserInfoKeyManagerToContinue:self
                                                                      }];
         result = YES;
     } else if ([response.content[@"id"] isEqualToString:@"illegal_access_token"]) {
-        // token 无效，重新登录
+        // token 非法，重新登录
         [[NSNotificationCenter defaultCenter] postNotificationName:kBSUserTokenIllegalNotification
                                                             object:nil
                                                           userInfo:@{
-                                                                     kBSUserTokenNotificationUserInfoKeyRequestToContinue:[response.request mutableCopy],
+                                                                     kBSUserTokenNotificationUserInfoKeyManagerToContinue:[response.request mutableCopy],
                                                                      kBSUserTokenNotificationUserInfoKeyManagerToContinue:self
                                                                      }];
         result = YES;
     } else if ([response.content[@"id"] isEqualToString:@"no_permission_for_this_api"]) {
+        // token 非法，重新登录
         [[NSNotificationCenter defaultCenter] postNotificationName:kBSUserTokenIllegalNotification
                                                             object:nil
                                                           userInfo:@{
-                                                                     kBSUserTokenNotificationUserInfoKeyRequestToContinue:[response.request mutableCopy],
+                                                                     kBSUserTokenNotificationUserInfoKeyManagerToContinue:[response.request mutableCopy],
                                                                      kBSUserTokenNotificationUserInfoKeyManagerToContinue:self
                                                                      }];
         result = NO;
     }
     return result;
+
 }
+
 
 
 

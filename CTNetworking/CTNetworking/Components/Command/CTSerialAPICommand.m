@@ -1,36 +1,19 @@
 //
-//  LGBaseAPICommand.m
+//  CTSerialAPICommand.m
 //  CTNetworking
 //
-//  Created by Corotata on 2017/4/12.
+//  Created by Corotata on 2017/4/26.
 //  Copyright © 2017年 Corotata. All rights reserved.
 //
 
-#import "LGBaseAPICommand.h"
+#import "CTSerialAPICommand.h"
+#import "CTAPIBaseManager.h"
 
-
-@interface LGBaseAPICommand()<CTAPIManagerCallBackDelegate>
+@interface CTSerialAPICommand()<CTAPIManagerCallBackDelegate>
 
 @end
 
-@implementation LGBaseAPICommand
-
-//- (instancetype)init
-//{
-//    self = [super init];
-//    if (self) {
-//        _delegate = nil;
-//        
-//        if ([self conformsToProtocol:@protocol(CTAPICommand)]) {
-//            self.child = (id <CTAPICommand>)self;
-//        } else {
-//            self.child = (id <CTAPICommand>)self;
-//            NSException *exception = [[NSException alloc] initWithName:@"LGBaseAPICommand提示" reason:[NSString stringWithFormat:@"%@没有遵循CTAPICommand协议",self.child] userInfo:nil];
-//            @throw exception;
-//        }
-//    }
-//    return self;
-//}
+@implementation CTSerialAPICommand
 
 - (void)setApiManager:(CTAPIBaseManager *)apiManager {
     _apiManager = apiManager;
@@ -58,7 +41,6 @@
         [self.delegate commandDidFailed:self];
     }
 }
-
 
 
 @end

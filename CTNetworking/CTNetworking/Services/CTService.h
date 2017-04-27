@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "CTURLResponse.h"
+#import "CTAPIBaseManager.h"
 
 // 所有CTService的派生类都要符合这个protocol
 @protocol CTServiceProtocol <NSObject>
@@ -39,7 +39,7 @@
 //- (void)successedOnCallingAPI:(CTURLResponse *)response;
 
 //提供拦截器集中处理Service错误问题，比如token失效要抛通知等
-- (BOOL)shouldCallBackByFailedOnCallingAPI:(CTURLResponse *)response;
+- (BOOL)shouldCallBackByFailedOnCallingAPI:(CTAPIBaseManager *)apiManager;
 
 @end
 
