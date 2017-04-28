@@ -9,7 +9,6 @@
 #import "CTAPIBaseManager.h"
 #import "CTNetworking.h"
 #import "CTCacheCenter.h"
-#import "CTLogger.h"
 #import "CTServiceFactory.h"
 #import "CTApiProxy.h"
 #import "CTNetworkingConfigurationManager.h"
@@ -20,9 +19,19 @@ REQUEST_ID = [[CTApiProxy sharedInstance] call##REQUEST_METHOD##WithParams:apiPa
 __strong typeof(weakSelf) strongSelf = weakSelf;                                        \
 [strongSelf successedOnCallingAPI:response];                                            \
 } fail:^(CTURLResponse *response) {                                                        \
-__strong typeof(weakSelf) strongSelf = weakSelf;                                        \
-[strongSelf failedOnCallingAPI:response withErrorType:CTAPIManagerErrorTypeDefault];    \
-}];                                                                                         \
+__strong typeof(weakSelf) strongSelf = weakSelf;                                            \
+CTAPIManagerErrorType errorType = CTAPIManagerErrorTypeDefault;                             \
+if (response.status == CTURLResponseStatusErrorCancel) {                                    \
+errorType = CTAPIManagerErrorTypeCanceled;                                              \
+}                                                                                           \
+if (response.status == CTURLResponseStatusErrorTimeout) {                                   \
+errorType = CTAPIManagerErrorTypeTimeout;                                               \
+}                                                                                           \
+if (response.status == CTURLResponseStatusErrorNoNetwork) {                                 \
+errorType = CTAPIManagerErrorTypeNoNetWork;                                             \
+}                                                                                           \
+[strongSelf failedOnCallingAPI:response withErrorType:errorType];                           \
+}];                                                                                                           \
 [self.requestIdList addObject:@(REQUEST_ID)];                                               \
 }
 
@@ -74,6 +83,12 @@ __strong typeof(weakSelf) strongSelf = weakSelf;                                
     self.requestIdList = nil;
 }
 
+
+#pragma mark - NSCopying
+- (id)copyWithZone:(NSZone *)zone
+{
+    return self;
+}
 #pragma mark - public methods
 - (void)cancelAllRequests
 {
@@ -378,26 +393,6 @@ __strong typeof(weakSelf) strongSelf = weakSelf;                                
     }
 }
 
-- (BOOL)hasCacheWithParams:(NSDictionary *)params
-{
-//    NSString *serviceIdentifier = self.child.serviceType;
-//    NSString *methodName = self.child.methodName;
-//    NSData *result = [self.cache fetchCachedDataWithServiceIdentifier:serviceIdentifier methodName:methodName requestParams:params];
-//    
-//    if (result == nil) {
-//        return NO;
-//    }
-//    
-//    __weak typeof(self) weakSelf = self;
-//    dispatch_async(dispatch_get_main_queue(), ^{
-//        __strong typeof (weakSelf) strongSelf = weakSelf;
-//        CTURLResponse *response = [[CTURLResponse alloc] initWithData:result];
-//        response.requestParams = params;
-//        [CTLogger logDebugInfoWithCachedResponse:response methodName:methodName serviceIdentifier:[[CTServiceFactory sharedInstance] serviceWithIdentifier:serviceIdentifier]];
-//        [strongSelf successedOnCallingAPI:response];
-//    });
-    return YES;
-}
 
 
 #pragma mark - getters and setters

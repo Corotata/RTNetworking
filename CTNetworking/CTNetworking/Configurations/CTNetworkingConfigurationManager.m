@@ -24,11 +24,14 @@
         sharedInstance.cacheOutdateTimeSeconds = 300;
         sharedInstance.cacheCountLimit = 1000;
         sharedInstance.shouldSetParamsInHTTPBodyButGET = NO;
-        [[AFNetworkReachabilityManager sharedManager] startMonitoring];
+//        [[AFNetworkReachabilityManager sharedManager] startMonitoring];
     });
     return sharedInstance;
 }
 
++ (void)load {
+    [[AFNetworkReachabilityManager sharedManager] startMonitoring];
+}
 - (BOOL)isReachable
 {
     if ([AFNetworkReachabilityManager sharedManager].networkReachabilityStatus == AFNetworkReachabilityStatusUnknown) {

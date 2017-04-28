@@ -91,6 +91,13 @@
         if (error.code == NSURLErrorTimedOut) {
             result = CTURLResponseStatusErrorTimeout;
         }
+        if (error.code == NSURLErrorCancelled) {
+            result = CTURLResponseStatusErrorCancel;
+        }
+        if (error.code == NSURLErrorNotConnectedToInternet) {
+            result = CTURLResponseStatusErrorNoNetwork;
+        }
+
         return result;
     } else {
         return CTURLResponseStatusSuccess;
