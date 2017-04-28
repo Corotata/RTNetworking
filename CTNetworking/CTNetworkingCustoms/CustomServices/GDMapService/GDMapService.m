@@ -59,7 +59,7 @@
 
 //为某些Service需要拼凑额外字段到URL处
 - (NSDictionary *)extraParmas {
-    return @{@"key": @"374910422"};
+    return @{@"mars": @"374910422"};
 //    return nil;
 }
 

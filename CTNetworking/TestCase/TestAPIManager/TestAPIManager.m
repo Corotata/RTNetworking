@@ -45,7 +45,7 @@ NSString * const kTestAPIManagerParamsKeyLongitude = @"kTestAPIManagerParamsKeyL
 
 - (BOOL)shouldCache
 {
-    return YES;
+    return NO;
 }
 
 - (NSDictionary *)reformParams:(NSDictionary *)params

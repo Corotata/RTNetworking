@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "CTAPIBaseManager.h"
+#import "CTNetworkingConfigurationManager.h"
 
 // 所有CTService的派生类都要符合这个protocol
 @protocol CTServiceProtocol <NSObject>
@@ -25,6 +26,9 @@
 
 @property (nonatomic, readonly) NSString *onlinePrivateKey;
 @property (nonatomic, readonly) NSString *offlinePrivateKey;
+
+@property (nonatomic, readonly) CTServiceAPIEnviroment enviroment;
+
 
 @optional
 

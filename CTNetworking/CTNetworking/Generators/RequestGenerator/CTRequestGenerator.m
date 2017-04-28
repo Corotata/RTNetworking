@@ -75,8 +75,8 @@
             }];
         }
     }
-    
-    request.requestParams = totalRequestParams;
+    request.originRequestParams = requestParams;
+    request.actualRequestParams = totalRequestParams;
     return request;
 }
 

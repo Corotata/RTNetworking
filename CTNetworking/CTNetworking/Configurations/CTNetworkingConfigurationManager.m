@@ -18,6 +18,7 @@
     dispatch_once(&onceToken, ^{
         sharedInstance = [[CTNetworkingConfigurationManager alloc] init];
         sharedInstance.shouldCache = YES;
+        sharedInstance.shouldPrintNetworkingLog = YES;
         sharedInstance.serviceIsOnline = NO;
         sharedInstance.apiNetworkingTimeoutSeconds = 20.0f;
         sharedInstance.cacheOutdateTimeSeconds = 300;

@@ -181,9 +181,9 @@ __strong typeof(weakSelf) strongSelf = weakSelf;                                
     [self removeRequestIdWithRequestID:response.requestId];
     if ([self.validator manager:self isCorrectWithCallBackData:response.content]) {
         
-        if ([self shouldCache] && !response.isCache) {
-            [self.cache saveCacheWithData:response.responseData serviceIdentifier:self.child.serviceType methodName:self.child.methodName requestParams:response.requestParams];
-        }
+//        if ([self shouldCache] && !response.isCache) {
+//            [self.cache saveCacheWithData:response.responseData serviceIdentifier:self.child.serviceType methodName:self.child.methodName requestParams:response.requestParams];
+//        }
         
         if ([self beforePerformSuccessWithResponse:response]) {
             if ([self.child shouldLoadFromNative]) {
@@ -358,22 +358,22 @@ __strong typeof(weakSelf) strongSelf = weakSelf;                                
 
 - (BOOL)hasCacheWithParams:(NSDictionary *)params
 {
-    NSString *serviceIdentifier = self.child.serviceType;
-    NSString *methodName = self.child.methodName;
-    NSData *result = [self.cache fetchCachedDataWithServiceIdentifier:serviceIdentifier methodName:methodName requestParams:params];
-    
-    if (result == nil) {
-        return NO;
-    }
-    
-    __weak typeof(self) weakSelf = self;
-    dispatch_async(dispatch_get_main_queue(), ^{
-        __strong typeof (weakSelf) strongSelf = weakSelf;
-        CTURLResponse *response = [[CTURLResponse alloc] initWithData:result];
-        response.requestParams = params;
-        [CTLogger logDebugInfoWithCachedResponse:response methodName:methodName serviceIdentifier:[[CTServiceFactory sharedInstance] serviceWithIdentifier:serviceIdentifier]];
-        [strongSelf successedOnCallingAPI:response];
-    });
+//    NSString *serviceIdentifier = self.child.serviceType;
+//    NSString *methodName = self.child.methodName;
+//    NSData *result = [self.cache fetchCachedDataWithServiceIdentifier:serviceIdentifier methodName:methodName requestParams:params];
+//    
+//    if (result == nil) {
+//        return NO;
+//    }
+//    
+//    __weak typeof(self) weakSelf = self;
+//    dispatch_async(dispatch_get_main_queue(), ^{
+//        __strong typeof (weakSelf) strongSelf = weakSelf;
+//        CTURLResponse *response = [[CTURLResponse alloc] initWithData:result];
+//        response.requestParams = params;
+//        [CTLogger logDebugInfoWithCachedResponse:response methodName:methodName serviceIdentifier:[[CTServiceFactory sharedInstance] serviceWithIdentifier:serviceIdentifier]];
+//        [strongSelf successedOnCallingAPI:response];
+//    });
     return YES;
 }
 

@@ -8,6 +8,13 @@
 
 #import <Foundation/Foundation.h>
 
+typedef NS_ENUM(NSUInteger, CTServiceAPIEnviroment) {
+    CTServiceAPIEnviromentDevelop,
+    CTServiceAPIEnviromentPreRelease,
+    CTServiceAPIEnviromentRelease
+};
+
+
 @interface CTNetworkingConfigurationManager : NSObject
 
 + (instancetype)sharedInstance;
@@ -19,6 +26,10 @@
 @property (nonatomic, assign) NSTimeInterval apiNetworkingTimeoutSeconds;
 @property (nonatomic, assign) NSTimeInterval cacheOutdateTimeSeconds;
 @property (nonatomic, assign) NSInteger cacheCountLimit;
+@property (nonatomic, assign) BOOL shouldPrintNetworkingLog;
+
+@property (nonatomic, assign) CTServiceAPIEnviroment apiEnviroment;
+
 
 //默认值为NO，当值为YES时，HTTP请求除了GET请求，其他的请求都会将参数放到HTTPBody中，如下所示
 //request.HTTPBody = [NSJSONSerialization dataWithJSONObject:requestParams options:0 error:NULL];

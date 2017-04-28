@@ -26,22 +26,22 @@
 @implementation CTURLResponse
 
 #pragma mark - life cycle
-- (instancetype)initWithResponseString:(NSString *)responseString requestId:(NSNumber *)requestId request:(NSURLRequest *)request responseData:(NSData *)responseData status:(CTURLResponseStatus)status
-{
-    self = [super init];
-    if (self) {
-        self.contentString = responseString;
-        self.content = [NSJSONSerialization JSONObjectWithData:responseData options:NSJSONReadingMutableContainers error:NULL];
-        self.status = status;
-        self.requestId = [requestId integerValue];
-        self.request = request;
-        self.responseData = responseData;
-        self.requestParams = request.requestParams;
-        self.isCache = NO;
-        self.error = nil;
-    }
-    return self;
-}
+//- (instancetype)initWithResponseString:(NSString *)responseString requestId:(NSNumber *)requestId request:(NSURLRequest *)request responseData:(NSData *)responseData status:(CTURLResponseStatus)status
+//{
+//    self = [super init];
+//    if (self) {
+//        self.contentString = responseString;
+//        self.content = [NSJSONSerialization JSONObjectWithData:responseData options:NSJSONReadingMutableContainers error:NULL];
+//        self.status = status;
+//        self.requestId = [requestId integerValue];
+//        self.request = request;
+//        self.responseData = responseData;
+////        self.requestParams = request.requestParams;
+//        self.isCache = NO;
+//        self.error = nil;
+//    }
+//    return self;
+//}
 
 - (instancetype)initWithResponseString:(NSString *)responseString requestId:(NSNumber *)requestId request:(NSURLRequest *)request responseData:(NSData *)responseData error:(NSError *)error
 {
@@ -52,7 +52,9 @@
         self.requestId = [requestId integerValue];
         self.request = request;
         self.responseData = responseData;
-        self.requestParams = request.requestParams;
+//        self.requestParams = request.requestParams;
+        self.acturlRequestParams = request.actualRequestParams;
+        self.originRequestParams = request.originRequestParams;
         self.isCache = NO;
         self.error = error;
         if (responseData) {

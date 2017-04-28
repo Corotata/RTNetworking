@@ -9,18 +9,41 @@
 #import "NSURLRequest+CTNetworkingMethods.h"
 #import <objc/runtime.h>
 
-static void *CTNetworkingRequestParams;
+static void *CTNetworkingActualRequestParams = &CTNetworkingActualRequestParams;
+static void *CTNetworkingOriginRequestParams = &CTNetworkingOriginRequestParams;
+static void *CTNetworkingRequestService = &CTNetworkingRequestService;
 
 @implementation NSURLRequest (CTNetworkingMethods)
 
-- (void)setRequestParams:(NSDictionary *)requestParams
+- (void)setActualRequestParams:(NSDictionary *)actualRequestParams
 {
-    objc_setAssociatedObject(self, &CTNetworkingRequestParams, requestParams, OBJC_ASSOCIATION_COPY);
+    objc_setAssociatedObject(self, CTNetworkingActualRequestParams, actualRequestParams, OBJC_ASSOCIATION_COPY);
 }
 
-- (NSDictionary *)requestParams
+- (NSDictionary *)actualRequestParams
 {
-    return objc_getAssociatedObject(self, &CTNetworkingRequestParams);
+    return objc_getAssociatedObject(self, CTNetworkingActualRequestParams);
+}
+
+- (void)setOriginRequestParams:(NSDictionary *)originRequestParams
+{
+    objc_setAssociatedObject(self, CTNetworkingOriginRequestParams, originRequestParams, OBJC_ASSOCIATION_COPY);
+}
+
+- (NSDictionary *)originRequestParams
+{
+    return objc_getAssociatedObject(self, CTNetworkingOriginRequestParams);
+}
+
+- (void)setService:(CTService *)service
+{
+    objc_setAssociatedObject(self, CTNetworkingRequestService, service, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+- (CTService *)service
+{
+    return objc_getAssociatedObject(self, CTNetworkingRequestService);
 }
 
 @end
+

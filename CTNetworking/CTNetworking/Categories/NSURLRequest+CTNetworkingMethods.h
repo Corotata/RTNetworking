@@ -7,9 +7,12 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "CTService.h"
 
 @interface NSURLRequest (CTNetworkingMethods)
 
-@property (nonatomic, copy) NSDictionary *requestParams;
+@property (nonatomic, copy) NSDictionary *actualRequestParams;
+@property (nonatomic, copy) NSDictionary *originRequestParams;
+@property (nonatomic, strong) CTService *service;
 
 @end
