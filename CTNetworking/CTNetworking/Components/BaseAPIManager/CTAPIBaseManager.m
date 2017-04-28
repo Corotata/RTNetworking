@@ -8,7 +8,7 @@
 
 #import "CTAPIBaseManager.h"
 #import "CTNetworking.h"
-#import "CTCache.h"
+#import "CTCacheCenter.h"
 #import "CTLogger.h"
 #import "CTServiceFactory.h"
 #import "CTApiProxy.h"
@@ -32,12 +32,10 @@ __strong typeof(weakSelf) strongSelf = weakSelf;                                
 
 @property (nonatomic, strong, readwrite) id fetchedRawData;
 @property (nonatomic, assign, readwrite) BOOL isLoading;
-@property (nonatomic, assign) BOOL isNativeDataEmpty;
 
 @property (nonatomic, copy, readwrite) NSString *errorMessage;
 @property (nonatomic, readwrite) CTAPIManagerErrorType errorType;
 @property (nonatomic, strong) NSMutableArray *requestIdList;
-@property (nonatomic, strong) CTCache *cache;
 
 @end
 
@@ -57,6 +55,8 @@ __strong typeof(weakSelf) strongSelf = weakSelf;                                
         _errorMessage = nil;
         _errorType = CTAPIManagerErrorTypeDefault;
         
+        _memoryCacheSecond = 3 * 60;
+        _diskCacheSecond = 3 * 60;
         if ([self conformsToProtocol:@protocol(CTAPIManager)]) {
             self.child = (id <CTAPIManager>)self;
         } else {
@@ -112,15 +112,23 @@ __strong typeof(weakSelf) strongSelf = weakSelf;                                
     NSDictionary *apiParams = [self reformParams:params];
     if ([self shouldCallAPIWithParams:apiParams]) {
         if ([self.validator manager:self isCorrectWithParamsData:apiParams]) {
-            
-            if ([self.child shouldLoadFromNative]) {
-                [self loadDataFromNative];
+
+            CTURLResponse *response = nil;
+            // 先检查一下是否有缓存
+            if (self.cachePolicy & CTAPIManagerCachePolicyMemory) {
+                response = [[CTCacheCenter sharedInstance] fetchMemoryCacheWithServiceIdentifier:self.child.serviceType methodName:self.child.methodName params:apiParams];
             }
             
-            // 先检查一下是否有缓存
-            if ([self shouldCache] && [self hasCacheWithParams:apiParams]) {
+            // 再检查是否有磁盘缓存
+            if (self.cachePolicy & CTAPIManagerCachePolicyDisk) {
+                response = [[CTCacheCenter sharedInstance] fetchDiskCacheWithServiceIdentifier:self.child.serviceType methodName:self.child.methodName params:apiParams];
+            }
+            
+            if (response != nil) {
+                [self successedOnCallingAPI:response];
                 return 0;
             }
+
             
             // 实际的网络请求
             if ([self isReachable]) {
@@ -166,42 +174,38 @@ __strong typeof(weakSelf) strongSelf = weakSelf;                                
     self.isLoading = NO;
     self.response = response;
     
-    if ([self.child shouldLoadFromNative]) {
-        if (response.isCache == NO) {
-            [[NSUserDefaults standardUserDefaults] setObject:response.responseData forKey:[self.child methodName]];
-            [[NSUserDefaults standardUserDefaults] synchronize];
-        }
-    }
-    
     if (response.content) {
         self.fetchedRawData = [response.content copy];
     } else {
         self.fetchedRawData = [response.responseData copy];
     }
     [self removeRequestIdWithRequestID:response.requestId];
+    
     if ([self.validator manager:self isCorrectWithCallBackData:response.content]) {
-        
-//        if ([self shouldCache] && !response.isCache) {
-//            [self.cache saveCacheWithData:response.responseData serviceIdentifier:self.child.serviceType methodName:self.child.methodName requestParams:response.requestParams];
-//        }
-        
-        if ([self beforePerformSuccessWithResponse:response]) {
-            if ([self.child shouldLoadFromNative]) {
-                if (response.isCache == YES) {
-                    [self.delegate managerCallAPIDidSuccess:self];
-                }
-                if (self.isNativeDataEmpty) {
-                    [self.delegate managerCallAPIDidSuccess:self];
-                }
-            } else {
-                [self.delegate managerCallAPIDidSuccess:self];
+        if (self.cachePolicy != CTAPIManagerCachePolicyNoCache && response.isCache == NO) {
+            if (self.cachePolicy & CTAPIManagerCachePolicyMemory) {
+                [[CTCacheCenter sharedInstance] saveMemoryCacheWithResponse:response serviceIdentifier:self.child.serviceType methodName:self.child.methodName cacheTime:self.memoryCacheSecond];
             }
+            
+            if (self.cachePolicy & CTAPIManagerCachePolicyDisk) {
+                [[CTCacheCenter sharedInstance] saveDiskCacheWithResponse:response serviceIdentifier:self.child.serviceType methodName:self.child.methodName cacheTime:self.diskCacheSecond];
+            }
+        }
+        
+        if ([self.interceptor respondsToSelector:@selector(manager:didReceiveResponse:)]) {
+            [self.interceptor manager:self didReceiveResponse:response];
+        }
+        if ([self beforePerformSuccessWithResponse:response]) {
+            __weak typeof(self) weakSelf = self;
+            dispatch_async(dispatch_get_main_queue(), ^{
+                __strong typeof(weakSelf) strongSelf = weakSelf;
+                [strongSelf.delegate managerCallAPIDidSuccess:strongSelf];
+            });
         }
         [self afterPerformSuccessWithResponse:response];
     } else {
-        [self failedOnCallingAPI:response withErrorType:CTAPIManagerErrorTypeNoContent];
-    }
-}
+        [self failedOnCallingAPI:response withErrorType:CTAPIManagerErrorTypeNoNetWork];
+    }}
 
 - (void)failedOnCallingAPI:(CTURLResponse *)response withErrorType:(CTAPIManagerErrorType)errorType
 {
@@ -231,10 +235,29 @@ __strong typeof(weakSelf) strongSelf = weakSelf;                                
         self.fetchedRawData = [response.responseData copy];
     }
     
-    if ([self beforePerformFailWithResponse:response]) {
-        [self.delegate managerCallAPIDidFailed:self];
+    // 常规错误
+    if (errorType == CTAPIManagerErrorTypeNoNetWork) {
+        self.errorMessage = @"无网络连接，请检查网络";
     }
-    [self afterPerformFailWithResponse:response];
+    if (errorType == CTAPIManagerErrorTypeTimeout) {
+        self.errorMessage = @"请求超时";
+    }
+    if (errorType == CTAPIManagerErrorTypeCanceled) {
+        self.errorMessage = @"您已取消";
+    }
+    
+    __weak typeof(self) weakSelf = self;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if ([strongSelf.interceptor respondsToSelector:@selector(manager:didReceiveResponse:)]) {
+            [strongSelf.interceptor manager:strongSelf didReceiveResponse:response];
+        }
+        if ([strongSelf beforePerformFailWithResponse:response]) {
+            [strongSelf.delegate managerCallAPIDidFailed:strongSelf];
+        }
+        [strongSelf afterPerformFailWithResponse:response];
+    });
+
 }
 
 
@@ -260,7 +283,7 @@ __strong typeof(weakSelf) strongSelf = weakSelf;                                
     BOOL result = YES;
     
     self.errorType = CTAPIManagerErrorTypeSuccess;
-    if (self != self.interceptor && [self.interceptor respondsToSelector:@selector(manager: beforePerformSuccessWithResponse:)]) {
+    if ((NSInteger)self != (NSInteger)self.interceptor && [self.interceptor respondsToSelector:@selector(manager: beforePerformSuccessWithResponse:)]) {
         result = [self.interceptor manager:self beforePerformSuccessWithResponse:response];
     }
     return result;
@@ -268,7 +291,7 @@ __strong typeof(weakSelf) strongSelf = weakSelf;                                
 
 - (void)afterPerformSuccessWithResponse:(CTURLResponse *)response
 {
-    if (self != self.interceptor && [self.interceptor respondsToSelector:@selector(manager:afterPerformSuccessWithResponse:)]) {
+    if ((NSInteger)self != (NSInteger)self.interceptor && [self.interceptor respondsToSelector:@selector(manager:afterPerformSuccessWithResponse:)]) {
         [self.interceptor manager:self afterPerformSuccessWithResponse:response];
     }
 }
@@ -276,7 +299,7 @@ __strong typeof(weakSelf) strongSelf = weakSelf;                                
 - (BOOL)beforePerformFailWithResponse:(CTURLResponse *)response
 {
     BOOL result = YES;
-    if (self != self.interceptor && [self.interceptor respondsToSelector:@selector(manager:beforePerformFailWithResponse:)]) {
+    if ((NSInteger)self != (NSInteger)self.interceptor && [self.interceptor respondsToSelector:@selector(manager:beforePerformFailWithResponse:)]) {
         result = [self.interceptor manager:self beforePerformFailWithResponse:response];
     }
     return result;
@@ -284,7 +307,7 @@ __strong typeof(weakSelf) strongSelf = weakSelf;                                
 
 - (void)afterPerformFailWithResponse:(CTURLResponse *)response
 {
-    if (self != self.interceptor && [self.interceptor respondsToSelector:@selector(manager:afterPerformFailWithResponse:)]) {
+    if ((NSInteger)self != (NSInteger)self.interceptor && [self.interceptor respondsToSelector:@selector(manager:afterPerformFailWithResponse:)]) {
         [self.interceptor manager:self afterPerformFailWithResponse:response];
     }
 }
@@ -292,7 +315,7 @@ __strong typeof(weakSelf) strongSelf = weakSelf;                                
 //只有返回YES才会继续调用API
 - (BOOL)shouldCallAPIWithParams:(NSDictionary *)params
 {
-    if (self != self.interceptor && [self.interceptor respondsToSelector:@selector(manager:shouldCallAPIWithParams:)]) {
+    if ((NSInteger)self != (NSInteger)self.interceptor && [self.interceptor respondsToSelector:@selector(manager:shouldCallAPIWithParams:)]) {
         return [self.interceptor manager:self shouldCallAPIWithParams:params];
     } else {
         return YES;
@@ -301,7 +324,7 @@ __strong typeof(weakSelf) strongSelf = weakSelf;                                
 
 - (void)afterCallingAPIWithParams:(NSDictionary *)params
 {
-    if (self != self.interceptor && [self.interceptor respondsToSelector:@selector(manager:afterCallingAPIWithParams:)]) {
+    if ((NSInteger)self != (NSInteger)self.interceptor && [self.interceptor respondsToSelector:@selector(manager:afterCallingAPIWithParams:)]) {
         [self.interceptor manager:self afterCallingAPIWithParams:params];
     }
 }
@@ -309,7 +332,6 @@ __strong typeof(weakSelf) strongSelf = weakSelf;                                
 #pragma mark - method for child
 - (void)cleanData
 {
-    [self.cache clean];
     self.fetchedRawData = nil;
     self.errorMessage = nil;
     self.errorType = CTAPIManagerErrorTypeDefault;
@@ -377,32 +399,8 @@ __strong typeof(weakSelf) strongSelf = weakSelf;                                
     return YES;
 }
 
-- (void)loadDataFromNative
-{
-    NSString *methodName = self.child.methodName;
-    NSDictionary *result = (NSDictionary *)[[NSUserDefaults standardUserDefaults] objectForKey:methodName];
-    
-    if (result) {
-        self.isNativeDataEmpty = NO;
-        __weak typeof(self) weakSelf = self;
-        dispatch_async(dispatch_get_main_queue(), ^{
-            __strong typeof(weakSelf) strongSelf = weakSelf;
-            CTURLResponse *response = [[CTURLResponse alloc] initWithData:[NSJSONSerialization dataWithJSONObject:result options:0 error:NULL]];
-            [strongSelf successedOnCallingAPI:response];
-        });
-    } else {
-        self.isNativeDataEmpty = YES;
-    }
-}
 
 #pragma mark - getters and setters
-- (CTCache *)cache
-{
-    if (_cache == nil) {
-        _cache = [CTCache sharedInstance];
-    }
-    return _cache;
-}
 
 - (NSMutableArray *)requestIdList
 {

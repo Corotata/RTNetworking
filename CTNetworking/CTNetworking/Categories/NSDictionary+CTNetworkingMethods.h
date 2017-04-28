@@ -14,4 +14,6 @@
 - (NSString *)CT_jsonString;
 - (NSArray *)CT_transformedUrlParamsArraySignature:(BOOL)isForSignature;
 
+- (NSString *)CT_transformToUrlParamString;
+
 @end

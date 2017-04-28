@@ -6,16 +6,16 @@
 //  Copyright (c) 2014年 casatwy. All rights reserved.
 //
 
-#import "CTCachedObject.h"
-#import "CTNetworkingConfigurationManager.h"
-@interface CTCachedObject ()
+#import "CTMemoryCachedRecord.h"
+
+@interface CTMemoryCachedRecord ()
 
 @property (nonatomic, copy, readwrite) NSData *content;
 @property (nonatomic, copy, readwrite) NSDate *lastUpdateTime;
 
 @end
 
-@implementation CTCachedObject
+@implementation CTMemoryCachedRecord
 
 #pragma mark - getters and setters
 - (BOOL)isEmpty
@@ -26,7 +26,7 @@
 - (BOOL)isOutdated
 {
     NSTimeInterval timeInterval = [[NSDate date] timeIntervalSinceDate:self.lastUpdateTime];
-    return timeInterval > [CTNetworkingConfigurationManager sharedInstance].cacheOutdateTimeSeconds ;
+    return timeInterval > self.cacheTime;
 }
 
 - (void)setContent:(NSData *)content

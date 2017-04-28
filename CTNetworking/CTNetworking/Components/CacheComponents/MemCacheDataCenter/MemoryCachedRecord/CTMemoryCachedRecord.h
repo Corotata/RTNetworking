@@ -8,10 +8,11 @@
 
 #import <Foundation/Foundation.h>
 
-@interface CTCachedObject : NSObject
+@interface CTMemoryCachedRecord : NSObject
 
 @property (nonatomic, copy, readonly) NSData *content;
 @property (nonatomic, copy, readonly) NSDate *lastUpdateTime;
+@property (nonatomic, assign) NSTimeInterval cacheTime;
 
 @property (nonatomic, assign, readonly) BOOL isOutdated;
 @property (nonatomic, assign, readonly) BOOL isEmpty;

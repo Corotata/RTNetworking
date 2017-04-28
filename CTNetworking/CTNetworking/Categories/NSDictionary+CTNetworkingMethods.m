@@ -44,4 +44,21 @@
     return sortedResult;
 }
 
+
+- (NSString *)CT_transformToUrlParamString
+{
+    NSMutableString *paramString = [NSMutableString string];
+    for (int i = 0; i < self.count; i ++) {
+        NSString *string;
+        if (i == 0) {
+            string = [NSString stringWithFormat:@"?%@=%@", self.allKeys[i], self[self.allKeys[i]]];
+        } else {
+            string = [NSString stringWithFormat:@"&%@=%@", self.allKeys[i], self[self.allKeys[i]]];
+        }
+        [paramString appendString:string];
+    }
+    return paramString;
+}
+
+
 @end

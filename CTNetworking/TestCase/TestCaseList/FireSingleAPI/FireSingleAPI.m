@@ -87,6 +87,7 @@
         _testAPIManager = [[TestAPIManager alloc] init];
         _testAPIManager.delegate = self;
         _testAPIManager.paramSource = self;
+        _testAPIManager.cachePolicy = CTAPIManagerCachePolicyDisk;
     }
     return _testAPIManager;
 }

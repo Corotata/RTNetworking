@@ -82,7 +82,7 @@
     [logString appendFormat:@"Status:\t%ld\t(%@)\n\n", (long)response.statusCode, [NSHTTPURLResponse localizedStringForStatusCode:response.statusCode]];
     [logString appendFormat:@"Content:\n\t%@\n\n", responseString];
     [logString appendFormat:@"Request URL:\n\t%@\n\n", request.URL];
-    [logString appendFormat:@"Request Data:\n\t%@",request.originRequestParams.CT_jsonString];
+    [logString appendFormat:@"Request Data:\n\t%@\n\n",request.originRequestParams.CT_jsonString];
     [logString appendFormat:@"Raw Response String:\n\t%@\n\n", [[NSString alloc] initWithData:rawResponseData encoding:NSUTF8StringEncoding]];
     [logString appendFormat:@"Raw Response Header:\n\t%@\n\n", response.allHeaderFields];
     if (shouldLogError) {

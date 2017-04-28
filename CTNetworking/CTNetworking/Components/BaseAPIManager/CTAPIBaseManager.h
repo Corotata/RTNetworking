@@ -212,7 +212,8 @@ typedef NS_ENUM (NSUInteger, CTAPIManagerErrorType){
     CTAPIManagerErrorTypeNoContent,     //API请求成功但返回数据不正确。如果回调数据验证函数返回值为NO，manager的状态就会是这个。
     CTAPIManagerErrorTypeParamsError,   //参数错误，此时manager不会调用API，因为参数验证是在调用API之前做的。
     CTAPIManagerErrorTypeTimeout,       //请求超时。CTAPIProxy设置的是20秒超时，具体超时时间的设置请自己去看CTAPIProxy的相关代码。
-    CTAPIManagerErrorTypeNoNetWork      //网络不通。在调用API之前会判断一下当前网络是否通畅，这个也是在调用API之前验证的，和上面超时的状态是有区别的。
+    CTAPIManagerErrorTypeNoNetWork,    //网络不通。在调用API之前会判断一下当前网络是否通畅，这个也是在调用API之前验证的，和上面超时的状态是有区别的。
+    CTAPIManagerErrorTypeCanceled
 };
 
 typedef NS_ENUM (NSUInteger, CTAPIManagerRequestType){
@@ -222,7 +223,11 @@ typedef NS_ENUM (NSUInteger, CTAPIManagerRequestType){
     CTAPIManagerRequestTypeDelete
 };
 
-
+typedef NS_OPTIONS(NSUInteger, CTAPIManagerCachePolicy) {
+    CTAPIManagerCachePolicyNoCache = 0,
+    CTAPIManagerCachePolicyMemory = 1 << 0,
+    CTAPIManagerCachePolicyDisk = 1 << 1,
+};
 
 
 
@@ -272,6 +277,7 @@ typedef NS_ENUM (NSUInteger, CTAPIManagerRequestType){
 
 - (BOOL)manager:(CTAPIBaseManager *)manager shouldCallAPIWithParams:(NSDictionary *)params;
 - (void)manager:(CTAPIBaseManager *)manager afterCallingAPIWithParams:(NSDictionary *)params;
+- (void)manager:(CTAPIBaseManager *)manager didReceiveResponse:(CTURLResponse *)response;
 
 @end
 
@@ -288,6 +294,10 @@ typedef NS_ENUM (NSUInteger, CTAPIManagerRequestType){
 @property (nonatomic, weak) id<CTAPIManagerValidator> validator;
 @property (nonatomic, weak) NSObject<CTAPIManager> *child; //里面会调用到NSObject的方法，所以这里不用id
 @property (nonatomic, weak) id<CTAPIManagerInterceptor> interceptor;
+
+@property (nonatomic, assign) CTAPIManagerCachePolicy cachePolicy;
+@property (nonatomic, assign) NSTimeInterval memoryCacheSecond; // 默认 3 * 60
+@property (nonatomic, assign) NSTimeInterval diskCacheSecond; // 默认 3 * 60
 
 /*
  baseManager是不会去设置errorMessage的，派生的子类manager可能需要给controller提供错误信息。所以为了统一外部调用的入口，设置了这个变量。
