@@ -8,15 +8,14 @@ Pod::Spec.new do |s|
                    CTNetworking is an iOS discrete HTTP API calling framework based on AFNetworking,this is CTNetworking
                     DESC
 
-  s.homepage     = "https://github.com/casatwy/RTNetworking"
+  s.homepage     = "https://github.com/Corotata/RTNetworking"
   s.license      = { :type => "MIT", :file => "LICENSE" }
 
 
-  s.author             = { "CasaTaloyum" => "casatwy@msn.com" }
+  s.author             = { "CTNetworking" }
   s.platform     = :ios, "8.0"
 
-#s.source       = { :git => "https://github.com/Corotata/RTNetworking.git", :tag => "#{s.version}" }
-    s.source       = { :git => "https://github.com/Corotata/RTNetworking.git"}
+  s.source       = { :git => "https://github.com/Corotata/RTNetworking.git", :tag => s.version.to_s }
 
   s.source_files  = "CTNetworking/CTNetworking/**/*.{h,m}"
   #s.public_header_files = "CTNetworking/CTNetworking/**/*.h"
