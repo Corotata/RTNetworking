@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
   s.license      = { :type => "MIT", :file => "LICENSE" }
 
 
-  s.author             = { "CTNetworking" }
+  s.author       = {"CTNetworking" => "CTNetworking"}
   s.platform     = :ios, "8.0"
 
   s.source       = { :git => "https://github.com/Corotata/RTNetworking.git", :tag => s.version.to_s }
