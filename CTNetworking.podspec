@@ -12,10 +12,10 @@ Pod::Spec.new do |s|
   s.license      = { :type => "MIT", :file => "LICENSE" }
 
 
-  s.author       = {"CTNetworking" => "CTNetworking"}
+  s.author       = {"corotata" => "Corotata@qq.com"}
   s.platform     = :ios, "8.0"
 
-  s.source       = { :git => "https://github.com/Corotata/RTNetworking.git", :tag => s.version.to_s }
+  s.source       = { :git => "https://git.nya.pics/Ligo/LGNetworking.git", :tag => s.version.to_s }
 
   s.source_files  = "CTNetworking/CTNetworking/**/*.{h,m}"
   #s.public_header_files = "CTNetworking/CTNetworking/**/*.h"
